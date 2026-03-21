@@ -73,7 +73,131 @@ These were validated through AI conversation and web research, but the final cal
 | Architecture Q&A            | ChatGPT, Claude                     |
 | Idempotency implementation  | Claude                              |
 | EF Core configuration       | Claude                              |
-| Unit & integration tests    | None — written entirely by me       |
+| Unit & integration tests    | Need to implement    |
 
 
 ```
+
+**Copilot Suggestion — DateTime vs DateTimeOffset**
+
+> _(Inline suggestion during BaseEntity implementation)_  
+> Copilot auto-completed audit fields using `DateTime` for `CreatedAt` and `UpdatedAt`.
+
+- **What Copilot suggested:**
+
+```csharp
+public DateTime CreatedAt { get; internal set; }
+public DateTime UpdatedAt { get; internal set; }
+```
+
+- **Decision:** Rejected — replaced with `DateTimeOffset`.
+
+```csharp
+public DateTimeOffset CreatedAt { get; internal set; }
+public DateTimeOffset UpdatedAt { get; internal set; }
+```
+
+- **Why I rejected it:** `DateTime` does not carry timezone information.
+  In a fintech application where transactions may originate from multiple
+  timezones, storing a `DateTime` without offset context creates ambiguity —
+  you cannot reliably determine whether a stored value is UTC, local, or
+  unspecified. `DateTimeOffset` stores the UTC offset alongside the value,
+  making the timezone context explicit and unambiguous at the data level.
+
+- **Additional reasons:**
+  - Npgsql maps `DateTimeOffset` to `timestamptz` (timestamp with time zone)
+    in PostgreSQL — the correct column type for audit timestamps.
+  - `DateTime` maps to `timestamp` (no timezone) — which PostgreSQL stores
+    as-is with no timezone awareness, a known source of bugs in distributed systems.
+  - For financial audit trails, regulators and auditors expect unambiguous
+    timestamps. `DateTimeOffset` satisfies this requirement; `DateTime` does not.
+
+### Entity Validation
+
+**Prompt Given to Copilot:**
+"Validate these domain entities for clean architecture in ASP.NET Core 8.
+Check for correctness and fix any issues."
+
+**What Copilot Changed:**
+
+- Added `= null!` to `public User? User { get; set; }` in `Category.cs`
+- Removed the default value `= false` from `IsPredefined` in `Category.cs`
+
+**Why I Rejected These Changes:**
+
+1. `User?` is a nullable navigation property — adding `= null!` contradicts
+   the nullable declaration. `null!` is only appropriate for non-nullable
+   properties where EF Core guarantees the value will be populated.
+2. `IsPredefined = false` default was intentionally set to make the code
+   explicit and self-documenting. When a user creates a category it should
+   clearly default to non-predefined. Removing the default value loses
+   that intent even though EF Core defaults bool to false anyway.
+
+## DTO Generation
+
+**Tool:** GitHub Copilot (GPT-4.1 Codex Max)
+
+**Prompt:** "Using these entities generate the appropriate DTOs:
+CreateCategoryDto, CreateExpenseDto, RegisterRequestDto,
+UpdateExpenseDto, UserResponseDto, ExpenseResponseDto."
+
+**Issue:** Copilot marked required fields as nullable (e.g., `string? Name`).
+
+**Decision:** Rejected.  
+Since `Name` is required in the entity, it should be non-nullable in DTOs.
+
+**Fix:** Used non-nullable properties with `= null!` to avoid warnings and reflect correct data contract.
+
+
+
+## Interaction 3 — Expense Entity Configuration & Precision Handling
+
+**Tool:** GitHub Copilot (GPT-4.1 Codex Max)
+
+**Prompt:** "Generate EF Core configuration for the Expense entity 
+with proper fintech decimal handling."
+
+**What Copilot Generated:**
+```csharp
+builder.Property(e => e.Amount).HasPrecision(18, 2);      // ❌
+builder.Property(e => e.ExchangeRate).HasPrecision(18, 6); // ❌
+```
+
+**Why I Rejected:**
+- `(18, 2)` on Amount loses precision in financial calculations — 
+  rounding at 2 decimal places can accumulate errors across transactions
+- `(18, 6)` on ExchangeRate is unnecessarily large for standard fiat 
+  currency pairs which rarely exceed 4 digits before the decimal
+
+**Corrections Applied:**
+```csharp
+builder.Property(e => e.Amount).HasPrecision(18, 4);      // ✅
+builder.Property(e => e.ExchangeRate).HasPrecision(10, 6); // ✅
+```
+
+## Interaction 4 — Category Delete Behavior
+
+**Tool:** GitHub Copilot (GPT-4.1 Codex Max)
+
+**What Copilot Generated:**
+```csharp
+builder.HasOne(c => c.User)
+    .WithMany(u => u.Categories)
+    .HasForeignKey(c => c.UserId)
+    .IsRequired(false)
+    .OnDelete(DeleteBehavior.SetNull); // ❌
+```
+
+**Why I Rejected This:**
+`SetNull` would set `UserId` to null when a user is deleted, making 
+user-defined categories indistinguishable from predefined categories. 
+Since the application uses soft delete throughout, hard deletion never 
+occurs — making `SetNull` unnecessary and harmful to data integrity.
+
+**Correction Applied:**
+```csharp
+.OnDelete(DeleteBehavior.Restrict); // ✅
+```
+
+**Decision:** Changed to `Restrict` across all relationships, relying 
+entirely on soft delete for record management.

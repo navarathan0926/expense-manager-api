@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace ExpenseManager.Application
 {
@@ -7,7 +9,7 @@ namespace ExpenseManager.Application
 		public static IServiceCollection AddApplication(
 		this IServiceCollection services)
 		{
-			// AutoMapper, FluentValidation, Services will be registered here later
+			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 			return services;
 		}
