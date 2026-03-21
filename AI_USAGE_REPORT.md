@@ -204,3 +204,73 @@ occurs — making `SetNull` unnecessary and harmful to data integrity.
 
 **Decision:** Changed to `Restrict` across all relationships, relying
 entirely on soft delete for record management.
+
+## AutoMapper Password Hashing — Design Decision
+
+**Question asked:** Why do we ignore `PasswordHash` in AutoMapper and where should
+password hashing happen?
+
+**AI Explanation:**
+
+- `RegisterRequestDto.Password` and `User.PasswordHash` are different field names
+- AutoMapper cannot match them automatically
+- Without `.Ignore()`, AutoMapper throws `AutoMapperConfigurationException` at startup
+
+**Design Decision learned:**
+
+- AutoMapper is a mapping tool, not a business logic tool
+- Password hashing belongs in the service layer (single responsibility principle)
+- `.Ignore()` in mapping + manual assignment in service work together
+
+**Flow understood:**
+
+1. DTO receives plain text password
+2. Service layer hashes it using BCrypt
+3. AutoMapper maps DTO → User (PasswordHash skipped)
+4. Service manually assigns `user.PasswordHash = hashedPassword`
+5. Plain text password never reaches the database
+
+**Outcome:** Understood why separating mapping concerns from business logic
+is important for security and maintainability.
+
+## User Login Validation (`LoginRequestValidator`)
+
+### Prompt
+
+"I am building a login endpoint in ASP.NET Core using FluentValidation. The login request contains an Email and Password field. Can you create a LoginRequestValidator using FluentValidation that validates these fields appropriately for a login scenario?"
+
+### AI Response
+
+AI suggested applying the same complexity rules as the registration validator — including
+uppercase, lowercase, digit, and special character checks.
+
+### Decision & Reason
+
+The AI suggestion was modified. Password complexity rules are not appropriate for login
+validation because they could lock out users whose passwords were created under different
+rules. Login only needs to verify that the credentials are not empty and within a safe length.
+The validator was simplified accordingly:
+
+```csharp
+
+```
+
+## Create Expense Validation (`CreateExpenseValidator`)
+
+### Prompt
+
+> "I am building a create expense endpoint in ASP.NET Core using FluentValidation. Can you review my `CreateExpenseValidator` and confirm if it is correct and complete?"
+
+### AI Response
+
+AI flagged the following issues:
+
+- `NotEmpty()` on `Amount` (decimal) is redundant since `decimal` defaults to `0`, which is already caught by `.GreaterThan(0)`.
+- `DateTime.UtcNow` is evaluated once at startup when used directly — a lambda `(_ => DateTime.UtcNow)` should be used instead so it evaluates per request.
+- I Suggested changing `DateTime` to `DateTimeOffset` for proper timezone handling across different regions.
+
+### Decision & Reason
+
+- **Amount:** Kept a specific validation message for the empty/missing case. Since `Amount` is `decimal?` (nullable), replaced `NotEmpty()` with `NotNull()` to give a clear "Amount is required." message separately from the "must be greater than 0" rule.
+- **Date:** Changed `DateTime` to `DateTimeOffset` to correctly handle timezones — important for an expense tracker where users may be in different regions. Updated the validator to use a lambda `(_ => DateTimeOffset.UtcNow)` to ensure the value is evaluated per request.
+- **ExchangeRate:** Confirmed that leaving it optional with `.When(x => x.ExchangeRate.HasValue)` is correct since ExchangeRate is an optional field.

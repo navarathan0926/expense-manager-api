@@ -9,7 +9,12 @@ namespace ExpenseManager.Application.Mappings
         public MappingProfile()
         {
             CreateMap<User, UserResponseDto>();
-            CreateMap<RegisterRequestDto, User>();
+
+            // Password is hashed in the service layer before being assigned to PasswordHash
+            CreateMap<RegisterRequestDto, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
+            CreateMap<LoginRequestDto, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
 
             CreateMap<Expense, ExpenseResponseDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
