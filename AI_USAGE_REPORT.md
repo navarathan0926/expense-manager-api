@@ -47,3 +47,33 @@ These were validated through AI conversation and web research, but the final cal
 - **What I did:** Confirmed it matched my design. Moved `FluentValidation.AspNetCore` to the API layer instead — the AI placed it in Application, but registration belongs closer to the HTTP pipeline.
 
 ---
+
+**Prompt**
+
+> _(Suggestion from Copilot during entity review)_  
+> Copilot flagged: "You have `Id`, `CreatedAt`, `UpdatedAt` scattered across entities.
+> Consider extracting a base class."
+
+- **What I got:** A suggestion to create a `BaseEntity` or `AuditableEntity` abstract
+  class containing common fields repeated across domain entities.
+- **My reasoning:** I agreed — this is a straightforward application of the **DRY
+  principle** (Don't Repeat Yourself). Having `Id`, `CreatedAt`, and `UpdatedAt`
+  duplicated across every entity is a maintenance risk: if the audit field type or
+  naming changes, we might need to update every entity individually.
+- **Decision:** ✅ Accepted and implemented as `BaseEntity` in the Domain layer
+  with no external dependencies.
+
+```
+
+
+| Area                        | AI Tool Used                        |
+|-----------------------------|-------------------------------------|
+| Project initialization      | ChatGPT, Claude, documentation      |
+| Entity code suggestions     | GitHub Copilot (inline)             |
+| Architecture Q&A            | ChatGPT, Claude                     |
+| Idempotency implementation  | Claude                              |
+| EF Core configuration       | Claude                              |
+| Unit & integration tests    | None — written entirely by me       |
+
+
+```
