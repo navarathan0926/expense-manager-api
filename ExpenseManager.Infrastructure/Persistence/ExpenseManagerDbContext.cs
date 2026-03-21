@@ -14,25 +14,31 @@ namespace ExpenseManager.Infrastructure.Persistence
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ExpenseManagerDbContext).Assembly);
 			base.OnModelCreating(modelBuilder);
-			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
 
 		public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
 		{
-			var entries = ChangeTracker.Entries<BaseEntity>()
-						.Where(e => e.State == EntityState.Added ||
-						e.State == EntityState.Modified);
+			var entries = ChangeTracker.Entries<BaseEntity>();
 
 			foreach (var entry in entries)
 			{
-				entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
-
-				if (entry.State == EntityState.Added)
-					entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
-
-				if (entry.Entity.IsDeleted && entry.Entity.DeletedAt == null)
-        			entry.Entity.DeletedAt = DateTimeOffset.UtcNow;
+				switch (entry.State)
+				{
+					case EntityState.Added:
+						entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
+						entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+						break;
+					case EntityState.Modified:
+						entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+						break;
+					case EntityState.Deleted:
+						entry.State = EntityState.Modified;
+						entry.Entity.IsDeleted = true;
+						entry.Entity.DeletedAt = DateTimeOffset.UtcNow;
+						break;
+				}
 			}
 
 			return await base.SaveChangesAsync(cancellationToken);

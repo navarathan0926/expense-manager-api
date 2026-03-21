@@ -148,28 +148,29 @@ Since `Name` is required in the entity, it should be non-nullable in DTOs.
 
 **Fix:** Used non-nullable properties with `= null!` to avoid warnings and reflect correct data contract.
 
-
-
 ## Interaction 3 — Expense Entity Configuration & Precision Handling
 
 **Tool:** GitHub Copilot (GPT-4.1 Codex Max)
 
-**Prompt:** "Generate EF Core configuration for the Expense entity 
+**Prompt:** "Generate EF Core configuration for the Expense entity
 with proper fintech decimal handling."
 
 **What Copilot Generated:**
+
 ```csharp
 builder.Property(e => e.Amount).HasPrecision(18, 2);      // ❌
 builder.Property(e => e.ExchangeRate).HasPrecision(18, 6); // ❌
 ```
 
 **Why I Rejected:**
-- `(18, 2)` on Amount loses precision in financial calculations — 
+
+- `(18, 2)` on Amount loses precision in financial calculations —
   rounding at 2 decimal places can accumulate errors across transactions
-- `(18, 6)` on ExchangeRate is unnecessarily large for standard fiat 
+- `(18, 6)` on ExchangeRate is unnecessarily large for standard fiat
   currency pairs which rarely exceed 4 digits before the decimal
 
 **Corrections Applied:**
+
 ```csharp
 builder.Property(e => e.Amount).HasPrecision(18, 4);      // ✅
 builder.Property(e => e.ExchangeRate).HasPrecision(10, 6); // ✅
@@ -180,6 +181,7 @@ builder.Property(e => e.ExchangeRate).HasPrecision(10, 6); // ✅
 **Tool:** GitHub Copilot (GPT-4.1 Codex Max)
 
 **What Copilot Generated:**
+
 ```csharp
 builder.HasOne(c => c.User)
     .WithMany(u => u.Categories)
@@ -189,15 +191,16 @@ builder.HasOne(c => c.User)
 ```
 
 **Why I Rejected This:**
-`SetNull` would set `UserId` to null when a user is deleted, making 
-user-defined categories indistinguishable from predefined categories. 
-Since the application uses soft delete throughout, hard deletion never 
+`SetNull` would set `UserId` to null when a user is deleted, making
+user-defined categories indistinguishable from predefined categories.
+Since the application uses soft delete throughout, hard deletion never
 occurs — making `SetNull` unnecessary and harmful to data integrity.
 
 **Correction Applied:**
+
 ```csharp
 .OnDelete(DeleteBehavior.Restrict); // ✅
 ```
 
-**Decision:** Changed to `Restrict` across all relationships, relying 
+**Decision:** Changed to `Restrict` across all relationships, relying
 entirely on soft delete for record management.

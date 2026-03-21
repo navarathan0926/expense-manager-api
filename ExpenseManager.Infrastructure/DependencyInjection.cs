@@ -12,7 +12,10 @@ namespace ExpenseManager.Infrastructure
 		IConfiguration configuration)
 		{
 			services.AddDbContext<ExpenseManagerDbContext>(options =>
-				options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+					options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
+					npgsql => npgsql.MigrationsAssembly(typeof(ExpenseManagerDbContext).Assembly.FullName)
+				)
+			);
 
 			return services;
 		}
