@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExpenseManager.Application\ExpenseManager.Application.csproj" />
+    <ProjectReference Include="..\ExpenseManager.Domain\ExpenseManager.Domain.csproj" />
   </ItemGroup>
 
 </Project>

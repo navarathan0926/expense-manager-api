@@ -1,6 +1,5 @@
-
-
-using ExpenseManager.Infrastructure.Persistence;
+using ExpenseManager.Application;
+using ExpenseManager.Infrastructure;
 
 namespace ExpenseManager.API
 {
@@ -17,8 +16,8 @@ namespace ExpenseManager.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-			builder.Services.AddDbContext<ExpenseManagerDbContext>(options =>
-	            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+			builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddApplication();
 
 			var app = builder.Build();
 
