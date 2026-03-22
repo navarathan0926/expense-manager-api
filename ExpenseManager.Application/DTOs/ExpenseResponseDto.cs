@@ -11,6 +11,5 @@ namespace ExpenseManager.Application.DTOs
         public string? Description { get; set; }
         public DateTimeOffset Date { get; set; }
         public string CategoryName { get; set; } = null!;
-        public string UserEmail { get; set; } = null!;
     }
 }

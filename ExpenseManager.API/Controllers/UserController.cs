@@ -24,10 +24,18 @@ public class UserController : BaseController
     }
 
     [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<UserResponseDto>> GetMe()
+    {
+        var user = await _userService.GetByIdAsync(CurrentUserId);
+        return Ok(user);
+    }
+
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserResponseDto>> GetById(Guid id)
     {
-        var user = await _userService.GetByIdAsync(id, CurrentUserId, IsAdmin);
+        var user = await _userService.GetByIdAsync(id);
         return Ok(user);
     }
 }

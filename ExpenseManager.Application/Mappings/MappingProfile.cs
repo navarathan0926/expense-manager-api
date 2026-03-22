@@ -16,16 +16,12 @@ namespace ExpenseManager.Application.Mappings
 
 
             CreateMap<Expense, ExpenseResponseDto>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email));
-            CreateMap<CreateExpenseDto, Expense>()
-                .ForMember(dest => dest.UserId, opt => opt.Ignore());
-            CreateMap<UpdateExpenseDto, Expense>()
-                .ForMember(dest => dest.UserId, opt => opt.Ignore());
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+            CreateMap<CreateExpenseDto, Expense>();
+            CreateMap<UpdateExpenseDto, Expense>();
 
             CreateMap<Category, CategoryResponseDto>();
-            CreateMap<CreateCategoryDto, Category>()
-                .ForMember(dest => dest.UserId, opt => opt.Ignore());
+            CreateMap<CreateCategoryDto, Category>();
         }
     }
 }

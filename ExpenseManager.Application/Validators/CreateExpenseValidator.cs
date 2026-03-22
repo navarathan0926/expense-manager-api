@@ -7,9 +7,6 @@ namespace ExpenseManager.Application.Validators
     {
         public CreateExpenseValidator()
         {
-            RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId is required and must not be an empty.");
-
             RuleFor(x => x.CategoryId)
                 .NotEmpty().WithMessage("CategoryId is required and must not be an empty.");
 

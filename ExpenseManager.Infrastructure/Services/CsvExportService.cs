@@ -18,12 +18,13 @@ public class CsvExportService : ICsvExportService
     public async Task<byte[]> ExportExpensesAsync(Guid userId, ExpenseFilterDto filters)
     {
         var expenses = await _expenseRepository.GetFilteredAsync(userId, filters);
+        if (!expenses.Any())
+            return [];
 
         using var memoryStream = new MemoryStream();
         using var streamWriter = new StreamWriter(memoryStream);
         using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
 
-        // Map domain entities to anonymous objects or a specific DTO for CSV
         var records = expenses.Select(e => new
         {
             Date = e.Date.ToString("yyyy-MM-dd"),
@@ -35,7 +36,7 @@ public class CsvExportService : ICsvExportService
 
         await csvWriter.WriteRecordsAsync(records);
         await streamWriter.FlushAsync();
-        
+
         return memoryStream.ToArray();
     }
 }

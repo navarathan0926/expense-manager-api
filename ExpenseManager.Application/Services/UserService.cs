@@ -24,13 +24,8 @@ public class UserService : IUserService
         return _mapper.Map<IEnumerable<UserResponseDto>>(users);
     }
 
-    public async Task<UserResponseDto> GetByIdAsync(Guid id, Guid currentUserId, bool isAdmin)
+    public async Task<UserResponseDto> GetByIdAsync(Guid id)
     {
-        if (!isAdmin && id != currentUserId)
-        {
-            throw new UnauthorizedException("You don't have permission to access this user.");
-        }
-
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
         {

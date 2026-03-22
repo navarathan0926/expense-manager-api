@@ -30,12 +30,14 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
 
         if (filters.FromDate.HasValue)
         {
-            query = query.Where(e => e.Date >= filters.FromDate.Value);
+            query = query.Where(e =>
+                e.Date >= filters.FromDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
         }
 
         if (filters.ToDate.HasValue)
         {
-            query = query.Where(e => e.Date <= filters.ToDate.Value);
+            query = query.Where(e =>
+                e.Date <= filters.ToDate.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc));
         }
 
         if (filters.CategoryId.HasValue)

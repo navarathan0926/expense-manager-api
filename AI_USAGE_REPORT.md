@@ -17,7 +17,7 @@ The specific areas I researched during initialization:
 
 **Prompts used during initialization:**
 
-> "I want to build a .NET 8 Web API for a fintech app using clean architecture. The app handles transactions and idempotency. Can you explain what each layer — Domain, Application, Infrastructure, API — should and should not contain, and what the project reference rules should be?"
+> "I want to build a .NET 8 Web API for a fintech app using clean architecture. Can you explain what each layer — Domain, Application, Infrastructure, API — should and should not contain, and what the project reference rules should be?"
 
 > "What are the risks of letting the Domain layer depend on EF Core or any infrastructure concern? How do other teams handle shared base classes like audit fields?"
 
@@ -40,7 +40,7 @@ These were validated through AI conversation and web research, but the final cal
 
 **Prompt 1**
 
-> "I am building a .NET 8 Web API using clean architecture with layers: API, Application, Domain, Infrastructure. The project is a fintech app focusing on transactions and idempotency. What should each layer's responsibility be and what NuGet packages belong where?"
+> "I am building a .NET 8 Web API using clean architecture with layers: API, Application, Domain, Infrastructure. What should each layer's responsibility be and what NuGet packages belong where?"
 
 - **Why I asked this:** To validate my own understanding of clean architecture boundaries before writing code.
 - **What I got:** A layer breakdown with package suggestions (MediatR in Application, EF Core in Infrastructure, FluentValidation in Application).

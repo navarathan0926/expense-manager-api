@@ -29,6 +29,7 @@ public class CategoryService : ICategoryService
         }
 
         var category = _mapper.Map<Category>(dto);
+        category.IsPredefined = false;
         category.UserId = userId; // Never trust userId from DTO
 
         await _categoryRepository.AddAsync(category);

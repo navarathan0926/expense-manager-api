@@ -20,6 +20,8 @@ public class ExportController : BaseController
     public async Task<IActionResult> ExportCsv([FromQuery] ExpenseFilterDto filters)
     {
         var bytes = await _csvExportService.ExportExpensesAsync(CurrentUserId, filters);
+        if (bytes == null)
+            return NoContent();
         var fileName = $"expenses_export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         return File(bytes, "text/csv", fileName);
     }

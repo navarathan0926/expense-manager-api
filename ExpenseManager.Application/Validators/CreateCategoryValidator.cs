@@ -15,10 +15,6 @@ namespace ExpenseManager.Application.Validators
             RuleFor(x => x.Description)
                 .MaximumLength(500).When(x => !string.IsNullOrEmpty(x.Description))
                 .WithMessage("Description must not exceed 500 characters.");
-
-            RuleFor(x => x.UserId)
-                .NotEmpty().When(x => x.UserId.HasValue)
-                .WithMessage("User ID is required for non-predefined categories.");
         }
     }
 }

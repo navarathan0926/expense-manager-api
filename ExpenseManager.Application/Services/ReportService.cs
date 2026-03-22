@@ -17,8 +17,8 @@ public class ReportService : IReportService
     {
         var filter = new ExpenseFilterDto
         {
-            FromDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero),
-            ToDate = new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero)
+            FromDate = new DateOnly(year, month, 1),
+            ToDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month))
         };
         
         var expenseList = (await _expenseRepository.GetFilteredAsync(userId, filter)).ToList();
@@ -40,8 +40,8 @@ public class ReportService : IReportService
     {
         var filter = new ExpenseFilterDto
         {
-            FromDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero),
-            ToDate = new DateTimeOffset(year, month, DateTime.DaysInMonth(year, month), 23, 59, 59, TimeSpan.Zero)
+            FromDate = new DateOnly(year, month, 1),
+            ToDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month))
         };
         
         var expenseList = (await _expenseRepository.GetFilteredAsync(userId, filter)).ToList();
