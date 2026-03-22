@@ -274,3 +274,113 @@ AI flagged the following issues:
 - **Amount:** Kept a specific validation message for the empty/missing case. Since `Amount` is `decimal?` (nullable), replaced `NotEmpty()` with `NotNull()` to give a clear "Amount is required." message separately from the "must be greater than 0" rule.
 - **Date:** Changed `DateTime` to `DateTimeOffset` to correctly handle timezones — important for an expense tracker where users may be in different regions. Updated the validator to use a lambda `(_ => DateTimeOffset.UtcNow)` to ensure the value is evaluated per request.
 - **ExchangeRate:** Confirmed that leaving it optional with `.When(x => x.ExchangeRate.HasValue)` is correct since ExchangeRate is an optional field.
+
+## 5. Category Ownership Validation in `ExpenseService`
+
+### Prompt
+> "I am implementing the `CreateAsync` and `UpdateAsync` methods in `ExpenseService`. 
+> When an expense is created or updated, the service needs to validate that the assigned 
+> category is accessible to the requesting user. How should I implement this validation?"
+
+### AI Response
+AI suggested a single combined condition to check both category existence and ownership 
+in one if statement.
+
+### Decision & Reason
+The AI suggestion was modified. The validation was split into two separate checks instead 
+of a single combined condition for more accurate HTTP status codes:
+```csharp
+if (category == null)
+    throw new NotFoundException(nameof(Category), dto.CategoryId);
+
+if (!category.IsPredefined && category.UserId != userId)
+    throw new UnauthorizedException("You do not have permission to use this category.");
+```
+
+**Logic for each scenario:**
+- Category not found → null check → `404 NotFoundException`
+- Predefined category → `IsPredefined = true` → allowed for all users
+- Own category → `UserId` matches → allowed
+- Another user's category → `UserId` mismatch → `401 UnauthorizedException`
+
+**Why `IsPredefined` check is necessary:**
+Predefined categories have `UserId = null`, which would never match any user's ID. 
+Without the `IsPredefined` check, predefined categories would be incorrectly blocked 
+for all users.
+
+**Principle applied:** Separate conditions for different error scenarios produce accurate 
+HTTP status codes — `404` for missing resources, `401` for unauthorized access.
+
+
+## Unnecessary Code Change Identified — UpdateAsync Fetch Strategy
+
+**Context:** In ExpenseService.UpdateAsync, AI suggested changing 
+the first GetByIdAsync to GetByIdWithDetailsAsync for response mapping.
+
+**I questioned:** The update flow already fetches with details 
+at the end for the response. Why change the first fetch?
+
+**Flow analyzed:**
+1. GetByIdAsync — fetch expense for ownership check only
+2. Validate ownership (UserId check)
+3. Validate category from DTO
+4. Map UpdateExpenseDto onto expense entity
+5. Save changes
+6. GetByIdWithDetailsAsync — fetch with Category and User for response mapping
+
+**Conclusion:** Step 6 already handles the navigation properties 
+needed for response mapping. The first fetch at step 1 only needs 
+the base entity for ownership validation — GetByIdAsync is correct 
+and sufficient there.
+
+**AI suggestion was unnecessary.** The original code was correct.
+
+**Principle learned:** Always trace the full method flow before 
+accepting AI suggestions. A suggestion may seem valid in isolation 
+but becomes unnecessary when the complete context is considered.
+
+## Performance Optimization — Avoiding Multiple IEnumerable Iterations
+
+**Context:** In ReportService, expenses were fetched as IEnumerable 
+and then iterated multiple times:
+
+var totalAmount = expenses.Sum(e => e.Amount);
+var count = expenses.Count();
+
+**Issue identified:** Calling .Sum() and .Count() separately on 
+IEnumerable can iterate the collection multiple times and may 
+trigger multiple database queries if the source uses deferred execution 
+(e.g., IQueryable with EF Core).
+
+**Fix applied:**
+var expenseList = expenses.ToList();
+var count = expenseList.Count;        // property, no iteration
+var totalAmount = expenseList.Sum(e => e.Amount);  // one iteration
+
+**Why this matters:**
+- .ToList() materializes the collection once into memory
+- .Count is a List<T> property — zero iteration
+- .Sum() iterates once — total: one iteration only
+- Prevents unintended repeated execution if the query was deferred
+
+## FindAsync vs FirstOrDefaultAsync — Soft Delete Query Filter
+
+**Context:** In the generated `Repository<T>` base implementation, 
+`GetByIdAsync` was implemented as:
+
+var entity = await _dbSet.FindAsync(id);
+
+**Issue identified:** `FindAsync` bypasses EF Core global query filters.  
+This means soft deleted records (`IsDeleted = true`) might still be 
+returned when fetching by ID, breaking the soft delete behavior.
+
+**Fix applied:**
+var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id);
+
+**Why this matters:**
+- `FindAsync` performs a direct primary key lookup and may return 
+  entities without applying query filters
+- Global query filters (e.g., `e => !e.IsDeleted`) are ignored
+- `FirstOrDefaultAsync` executes through the full query pipeline 
+  and respects global query filters
+- Prevents returning soft deleted entities unintentionally

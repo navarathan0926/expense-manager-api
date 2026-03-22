@@ -126,3 +126,16 @@ Invalid requests return HTTP 400 with structured error details:
 - Custom validators for cross-property validation (e.g., StartDate < EndDate)
 - Async validators for database-level checks (e.g., email uniqueness)
 - Localized error messages for multi-language support
+
+
+## Roles and Permissions
+
+| Resource              | User       | Admin      |
+|-----------------------|------------|------------|
+| Own expenses          | ✅ CRUD    | ✅ CRUD    |
+| Other's expenses      | ❌         | ❌         |
+| Predefined categories | ✅ Read    | ✅ Read    |
+| Own categories        | ✅ CRUD    | ✅ CRUD    |
+| Other's categories    | ❌         | ❌         |
+| User management       | ❌         | ✅         |
+| Own profile           | ✅         | ✅         |
