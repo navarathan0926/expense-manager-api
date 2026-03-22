@@ -22,7 +22,7 @@ namespace ExpenseManager.API
                 config
                     .ReadFrom.Configuration(context.Configuration)
                     .WriteTo.Console()
-                    .WriteTo.File("logs/expense-manager-.txt", 
+                    .WriteTo.File("logs/expense-manager-.txt",
                         rollingInterval: RollingInterval.Day);
             });
 
@@ -69,10 +69,10 @@ namespace ExpenseManager.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo 
-                { 
-                    Title = "ExpenseManager API", 
-                    Version = "v1" 
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "ExpenseManager API",
+                    Version = "v1"
                 });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -116,11 +116,14 @@ namespace ExpenseManager.API
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseCors("NextJsPolicy");
             app.UseAuthentication();  // must come before UseAuthorization
             app.UseAuthorization();
-            
+
             app.MapControllers();
 
             app.Run();
