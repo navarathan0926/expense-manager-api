@@ -73,3 +73,25 @@ _context.Expenses.IgnoreQueryFilters().ToListAsync();
 Setting `UserId` to null on soft delete would make user-defined categories 
 appear as predefined categories, corrupting category ownership logic. 
 `Restrict` is used instead, relying on soft delete to hide records.
+
+
+
+## Transaction Handling Note
+- Each service method uses a single SaveChangesAsync() call
+- EF Core wraps each SaveChangesAsync() in an implicit transaction
+- This is sufficient for all current single-entity operations
+- Multi-step operations requiring explicit transactions would use:
+```csharp
+  await using var transaction = 
+      await _context.Database.BeginTransactionAsync();
+  try
+  {
+      // multiple operations
+      await transaction.CommitAsync();
+  }
+  catch
+  {
+      await transaction.RollbackAsync();
+      throw;
+  }
+```
