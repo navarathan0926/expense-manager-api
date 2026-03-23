@@ -85,7 +85,7 @@ This API uses JWT Bearer authentication.
 
 1. Register a user: `POST api/v1/auth/register`
 2. Login: `POST api/v1/auth/login` — copy the token from response
-3. In Swagger, click **Authorize** and enter: `Bearer {your_token}`
+3. In Swagger, click **Authorize** and enter: `{your_token}`
 
 ## 👤 Creating an Admin User
 
