@@ -11,6 +11,7 @@ namespace ExpenseManager.Infrastructure.Persistence
 		public DbSet<User> Users { get; set; }
 		public DbSet<Expense> Expenses { get; set; }
 		public DbSet<Category> Categories { get; set; }
+		public DbSet<Receipt> Receipts { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

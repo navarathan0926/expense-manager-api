@@ -1,0 +1,41 @@
+---
+description: Clean Architecture layer boundaries
+globs: **/*.cs
+alwaysApply: false
+---
+
+# Clean Architecture Layer Rules
+
+## Layer Responsibilities
+
+| Layer | Contains | Must NOT contain |
+|-------|----------|------------------|
+| `Domain` | Entities, enums | Business logic, external deps |
+| `Application` | DTOs, interfaces, services, validators, AutoMapper | DB access, HTTP, file IO |
+| `Infrastructure` | DbContext, repositories, JWT gen, BCrypt, CsvHelper | Business rules |
+| `API` | Controllers, middleware, Program.cs | Business logic, direct DB access |
+
+## Dependency Direction
+
+`API → Application + Infrastructure → Domain`. Domain has zero external references.
+
+## Package Placement
+
+- Database/EF Core, BCrypt, CsvHelper, JWT **generation** → Infrastructure
+- JWT **validation** (JwtBearer), Serilog, Swagger → API
+- AutoMapper, FluentValidation → Application
+
+## Data & Security Rules
+
+- Soft delete only (`IsDeleted` flag) — never hard-delete financial records
+- FK delete behavior: `Restrict` (never Cascade)
+- `decimal` for money; `DateTimeOffset` for timestamps; `DateOnly` for filter dates
+- `UserId` from JWT claims only — never from request body
+- Throw `NotFoundException`, `ConflictException`, `UnauthorizedException` from services
+- GlobalExceptionMiddleware maps exceptions to HTTP status codes
+
+## Adding Features
+
+New entity flow: Domain entity → Application DTOs + validator + service interface → Infrastructure repository → API controller.
+
+Migrations: `dotnet ef migrations add Name --project ExpenseManager.Infrastructure --startup-project ExpenseManager.API`

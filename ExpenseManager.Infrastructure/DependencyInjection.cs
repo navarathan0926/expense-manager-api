@@ -25,9 +25,12 @@ namespace ExpenseManager.Infrastructure
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IReceiptRepository, ReceiptRepository>();
             services.AddScoped<ICsvExportService, CsvExportService>();
+            services.AddScoped<IBlobStore, AzureBlobStore>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+
 
 			return services;
 		}

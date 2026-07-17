@@ -36,6 +36,7 @@ public class GlobalExceptionMiddleware
         {
             NotFoundException => (int)HttpStatusCode.NotFound,
             ConflictException => (int)HttpStatusCode.Conflict,
+            BadRequestException => (int)HttpStatusCode.BadRequest,
             UnauthorizedException => (int)HttpStatusCode.Unauthorized,
             UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized, 
             _ => (int)HttpStatusCode.InternalServerError

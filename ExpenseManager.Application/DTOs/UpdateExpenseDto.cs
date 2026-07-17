@@ -10,5 +10,7 @@ namespace ExpenseManager.Application.DTOs
         public decimal? ExchangeRate { get; set; }
         public string? Description { get; set; }
         public DateTimeOffset Date { get; set; }
+        public Guid? ReceiptId { get; set; }
     }
 }
+

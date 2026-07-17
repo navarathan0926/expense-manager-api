@@ -14,15 +14,18 @@ public class ExpenseService : IExpenseService
 {
     private readonly IExpenseRepository _expenseRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IReceiptRepository _receiptRepository;
     private readonly IMapper _mapper;
 
     public ExpenseService(
         IExpenseRepository expenseRepository,
         ICategoryRepository categoryRepository,
+        IReceiptRepository receiptRepository,
         IMapper mapper)
     {
         _expenseRepository = expenseRepository;
         _categoryRepository = categoryRepository;
+        _receiptRepository = receiptRepository;
         _mapper = mapper;
     }
 
@@ -34,6 +37,8 @@ public class ExpenseService : IExpenseService
 
         if (!category.IsPredefined && category.UserId != userId)
             throw new UnauthorizedException("You do not have permission to use this category.");
+
+        await EnsureReceiptOwnedAsync(dto.ReceiptId, userId);
 
         var expense = _mapper.Map<Expense>(dto);
         expense.UserId = userId; // Never trust from DTO, enforce from claims
@@ -104,6 +109,8 @@ public class ExpenseService : IExpenseService
         if (!category.IsPredefined && category.UserId != userId)
             throw new UnauthorizedException("You do not have permission to use this category.");
 
+        await EnsureReceiptOwnedAsync(dto.ReceiptId, userId);
+
         _mapper.Map(dto, expense);
         
         _expenseRepository.Update(expense);
@@ -112,4 +119,15 @@ public class ExpenseService : IExpenseService
         var updatedExpense = await _expenseRepository.GetByIdWithDetailsAsync(expense.Id);
         return _mapper.Map<ExpenseResponseDto>(updatedExpense);
     }
+
+    private async Task EnsureReceiptOwnedAsync(Guid? receiptId, Guid userId)
+    {
+        if (!receiptId.HasValue)
+            return;
+
+        var receipt = await _receiptRepository.GetOwnedAsync(receiptId.Value, userId);
+        if (receipt == null)
+            throw new NotFoundException(nameof(Receipt), receiptId.Value);
+    }
 }
+

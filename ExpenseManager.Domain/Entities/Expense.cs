@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace ExpenseManager.Domain.Entities
 {
     public class Expense : BaseEntity
@@ -16,5 +11,7 @@ namespace ExpenseManager.Domain.Entities
         public Category Category { get; set; } = null!;
         public string? Description { get; set; }
         public DateTimeOffset Date { get; set; }
+        public Guid? ReceiptId { get; set; }
+        public Receipt? Receipt { get; set; }
     }
 }

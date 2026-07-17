@@ -1,0 +1,38 @@
+---
+description: Application layer patterns for services, DTOs, and validators
+globs: ExpenseManager.Application/**
+alwaysApply: false
+---
+
+# Application Layer Patterns
+
+## Services
+
+- Inject repository interfaces directly (no Unit of Work)
+- `userId` always passed as method parameter from controller — set on entities in service, never from DTO
+- One `SaveChangesAsync()` per operation (implicit EF transaction)
+- Use AutoMapper for entity ↔ DTO mapping (`Mappings/MappingProfile.cs`)
+
+```csharp
+if (expense.UserId != userId)
+    throw new UnauthorizedException("You do not have permission...");
+```
+
+## DTOs & Validators
+
+- DTOs in `DTOs/` — one file per DTO, suffix `Dto` (e.g. `CreateExpenseDto`)
+- Validators in `Validators/` using FluentValidation `AbstractValidator<T>`
+- Register validators via `AddValidatorsFromAssembly` in `DependencyInjection.cs`
+- Query param DTOs (e.g. `ExpenseFilterDto`) need manual validation trigger
+
+## Interfaces
+
+- Service interfaces in `Interfaces/` (e.g. `IExpenseService`)
+- Repository interfaces in `Repositories/` (e.g. `IExpenseRepository`)
+- IO-bound implementations (JWT, CSV, password hash) → interface in Application, impl in Infrastructure
+
+## Response DTO Safety
+
+- Never expose `PasswordHash`, internal IDs of other users, or `UserEmail` on expenses
+- `IsPredefined` never trusted from client input
+- Update `API_DOC.md` when DTO shapes change (frontend is a separate repo)

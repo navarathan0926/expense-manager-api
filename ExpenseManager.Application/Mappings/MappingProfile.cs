@@ -20,8 +20,11 @@ namespace ExpenseManager.Application.Mappings
             CreateMap<CreateExpenseDto, Expense>();
             CreateMap<UpdateExpenseDto, Expense>();
 
+            CreateMap<Receipt, ReceiptDto>();
+
             CreateMap<Category, CategoryResponseDto>();
             CreateMap<CreateCategoryDto, Category>();
         }
     }
 }
+

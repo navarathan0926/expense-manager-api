@@ -18,8 +18,10 @@ namespace ExpenseManager.Application
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IExpenseService, ExpenseService>();
+            services.AddScoped<IReceiptService, ReceiptService>();
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IUserService, UserService>();
+
 
 			return services;
 		}
