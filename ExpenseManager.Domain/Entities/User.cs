@@ -10,5 +10,6 @@ namespace ExpenseManager.Domain.Entities
         public UserRole Role { get; set; } = UserRole.User;
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
+        public ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
 }

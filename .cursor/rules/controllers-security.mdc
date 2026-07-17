@@ -1,0 +1,46 @@
+---
+description: API controller and security conventions
+globs: ExpenseManager.API/**
+alwaysApply: false
+---
+
+# API Controller Conventions
+
+## BaseController Pattern
+
+All controllers inherit `BaseController` (not `ControllerBase` directly).
+
+```csharp
+public class ExpenseController : BaseController
+{
+    // Use CurrentUserId and IsAdmin — never parse UserId from body
+    var result = await _service.GetAllAsync(CurrentUserId, filters);
+}
+```
+
+## HTTP Conventions
+
+- `ActionResult<T>` when returning data; `IActionResult` for void (Delete)
+- POST create → `201 Created`; DELETE → `204 NoContent`
+- CSV export → `return File(bytes, "text/csv", "expenses.csv")`
+- Auth endpoints (`AuthController`) are public — no `[Authorize]`
+- Admin-only: `[Authorize(Roles = "Admin")]`
+
+## Middleware Pipeline Order (do not change)
+
+```
+GlobalExceptionMiddleware → HttpsRedirection → CORS → Authentication → Authorization → Swagger → MapControllers
+```
+
+## Configuration
+
+- JWT secret only in `appsettings.Development.json` (gitignored)
+- CORS origins from `Cors:AllowedOrigins` config — never hardcoded
+- Namespace: `ExpenseManager.API.Controllers`
+
+## Authorization Rules
+
+- Users access only their own expenses/categories
+- Predefined categories readable by everyone
+- Admin manages users (list all, get by id with admin check)
+- Ownership validated in service layer, not just controller

@@ -1,0 +1,26 @@
+---
+description: ExpenseManager.API standalone backend project overview
+alwaysApply: true
+---
+
+# Expense Manager API
+
+Standalone ASP.NET Core 8 repository. Clean Architecture with PostgreSQL.
+
+## Related Project
+
+Consumed by a **separate** Next.js frontend repository (`expense-manager-web`).
+This repo does not contain frontend code — only maintain API contracts here.
+
+## API Contract
+
+- Base route: `api/v1/[controller]` (singular: `/api/v1/expense`, `/api/v1/category`)
+- Auth: JWT Bearer; `UserId` from claims, never request body
+- CORS allows `http://localhost:3000` via `Cors:AllowedOrigins` in config
+- Document changes in `API_DOC.md` when endpoints or DTOs change
+
+## Before Making Changes
+
+1. Read `AGENTS.md` and relevant docs (`ARCHITECTURE.md`, `SECURITY.md`)
+2. Respect Clean Architecture layer boundaries
+3. Never commit secrets (`appsettings.Development.json`)

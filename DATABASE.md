@@ -57,7 +57,27 @@ All entities inherit from `BaseEntity` which provides:
 | CategoryId | uuid | No | FK → Categories |
 | Description | character varying(500) | Yes | Optional note |
 | Date | timestamp with time zone | No | Expense date |
+| ReceiptId | uuid | Yes | FK → Receipts (optional; many expenses may share one receipt) |
 | CreatedAt | timestamp with time zone | No | |
+| UpdatedAt | timestamp with time zone | No | |
+| IsDeleted | boolean | No | Soft delete |
+| DeletedAt | timestamp with time zone | Yes | |
+
+---
+
+### Receipts Table
+
+| Column | Type | Nullable | Description |
+|--------|------|----------|-------------|
+| Id | uuid | No | Primary key |
+| UserId | uuid | No | FK → Users |
+| FileName | character varying(255) | No | Original upload name |
+| BlobKey | character varying(500) | No | Blob storage key |
+| FileUrl | character varying(1000) | No | Blob URL |
+| ContentType | character varying(100) | No | MIME type |
+| Size | bigint | No | File size in bytes |
+| Status | character varying(20) | No | Pending / Uploaded / Failed |
+| CreatedAt | timestamp with time zone | No | Upload date (UTC) |
 | UpdatedAt | timestamp with time zone | No | |
 | IsDeleted | boolean | No | Soft delete |
 | DeletedAt | timestamp with time zone | Yes | |

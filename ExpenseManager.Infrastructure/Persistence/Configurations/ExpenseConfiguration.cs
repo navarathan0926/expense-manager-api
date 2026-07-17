@@ -34,6 +34,12 @@ namespace ExpenseManager.Infrastructure.Persistence.Configurations
                 .WithMany(c => c.Expenses)
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(e => e.Receipt)
+                .WithMany(r => r.Expenses)
+                .HasForeignKey(e => e.ReceiptId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
+
