@@ -16,6 +16,13 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
         return await _dbSet.FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
     }
 
+    public async Task<Receipt?> GetOwnedWithExpensesAsync(Guid id, Guid userId)
+    {
+        return await _dbSet
+            .Include(r => r.Expenses.Where(e => !e.IsDeleted))
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+    }
+
     public async Task<IEnumerable<Receipt>> ListByUserAsync(Guid userId)
     {
         return await _dbSet

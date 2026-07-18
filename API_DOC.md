@@ -149,7 +149,9 @@ Uploads a receipt file to Azure Blob Storage.
     "createdAt": "2026-07-16T10:00:00Z"
   }
   ```
-- `status`: `Pending` | `Uploaded` | `Failed`
+- `status`: `Pending` | `Uploaded` | `Failed` | `Processing` | `ReadyForReview` | `Confirmed` | `OcrFailed`
+
+Upload automatically enqueues OCR processing in the background.
 
 #### GET `/api/v1/receipt`
 
@@ -162,6 +164,69 @@ Lists receipts for the current user.
 Returns receipt metadata.
 
 - **Response**: `200 OK` or `404 Not Found`
+
+#### GET `/api/v1/receipt/{id}/extraction`
+
+Returns OCR-extracted fields for user review.
+
+- **Response**: `200 OK`
+  ```json
+  {
+    "receiptId": "guid",
+    "status": "ReadyForReview",
+    "merchant": "Coffee Shop",
+    "transactionDate": "2026-07-16T10:00:00Z",
+    "totalAmount": 12.50,
+    "currency": "USD",
+    "taxAmount": 1.05,
+    "suggestedCategoryId": "guid",
+    "ocrErrorMessage": null,
+    "lineItems": [
+      {
+        "description": "Latte",
+        "quantity": 1,
+        "unitPrice": 4.50,
+        "totalPrice": 4.50,
+        "suggestedCategoryId": "guid"
+      }
+    ]
+  }
+  ```
+
+#### POST `/api/v1/receipt/{id}/confirm`
+
+Creates one or more expenses from reviewed OCR line items. All expenses share the same `receiptId`. Receipt must be `ReadyForReview` and must not already have linked expenses.
+
+- **Request Body**:
+  ```json
+  {
+    "currency": "USD",
+    "date": "2026-07-16T10:00:00Z",
+    "importMode": "Itemized",
+    "expenses": [
+      {
+        "amount": 4.50,
+        "categoryId": "guid",
+        "description": "Latte"
+      },
+      {
+        "amount": 8.00,
+        "categoryId": "guid",
+        "description": "Sandwich"
+      }
+    ]
+  }
+  ```
+- `importMode`: `Combined` | `Itemized` (defaults to `Itemized` if omitted)
+  - `Combined`: exactly one expense (bill total); line items remain on the receipt for reference
+  - `Itemized`: one expense per selected line item; unselected lines are not imported
+- **Response**: `201 Created` (array of expense objects)
+
+#### POST `/api/v1/receipt/{id}/retry-ocr`
+
+Re-queues OCR for a receipt in `OcrFailed` status.
+
+- **Response**: `204 No Content`
 
 #### GET `/api/v1/receipt/{id}/file`
 

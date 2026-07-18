@@ -62,4 +62,25 @@ public class ReceiptController : BaseController
         await _receiptService.DeleteAsync(id, CurrentUserId);
         return NoContent();
     }
+
+    [HttpGet("{id:guid}/extraction")]
+    public async Task<ActionResult<ReceiptExtractionDto>> GetExtraction(Guid id)
+    {
+        var extraction = await _receiptService.GetExtractionAsync(id, CurrentUserId);
+        return Ok(extraction);
+    }
+
+    [HttpPost("{id:guid}/confirm")]
+    public async Task<ActionResult<IEnumerable<ExpenseResponseDto>>> Confirm(Guid id, [FromBody] ConfirmReceiptExtractionDto dto)
+    {
+        var expenses = await _receiptService.ConfirmExtractionAsync(id, dto, CurrentUserId);
+        return StatusCode(StatusCodes.Status201Created, expenses);
+    }
+
+    [HttpPost("{id:guid}/retry-ocr")]
+    public async Task<IActionResult> RetryOcr(Guid id)
+    {
+        await _receiptService.RetryOcrAsync(id, CurrentUserId);
+        return NoContent();
+    }
 }

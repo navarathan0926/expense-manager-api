@@ -33,9 +33,31 @@ namespace ExpenseManager.Infrastructure.Persistence.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(20);
 
+            builder.Property(r => r.Merchant)
+                .HasMaxLength(255);
+
+            builder.Property(r => r.Currency)
+                .HasMaxLength(3);
+
+            builder.Property(r => r.OcrErrorMessage)
+                .HasMaxLength(500);
+
+            builder.Property(r => r.LineItemsJson)
+                .HasColumnType("jsonb");
+
+            builder.Property(r => r.ConfirmedImportMode)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
             builder.HasOne(r => r.User)
                 .WithMany(u => u.Receipts)
                 .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(r => r.SuggestedCategory)
+                .WithMany()
+                .HasForeignKey(r => r.SuggestedCategoryId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
