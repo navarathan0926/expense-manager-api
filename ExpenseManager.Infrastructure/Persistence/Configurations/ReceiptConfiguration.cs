@@ -45,6 +45,9 @@ namespace ExpenseManager.Infrastructure.Persistence.Configurations
             builder.Property(r => r.LineItemsJson)
                 .HasColumnType("jsonb");
 
+            builder.Property(r => r.LineItemCount)
+                .HasDefaultValue(0);
+
             builder.Property(r => r.ConfirmedImportMode)
                 .HasConversion<string>()
                 .HasMaxLength(20);
@@ -59,6 +62,8 @@ namespace ExpenseManager.Infrastructure.Persistence.Configurations
                 .HasForeignKey(r => r.SuggestedCategoryId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(r => new { r.UserId, r.CreatedAt });
         }
     }
 }

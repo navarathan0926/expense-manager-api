@@ -39,6 +39,9 @@ namespace ExpenseManager.Infrastructure.Persistence.Configurations
                 .WithMany(r => r.Expenses)
                 .HasForeignKey(e => e.ReceiptId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasIndex(e => new { e.UserId, e.Date });
+            builder.HasIndex(e => new { e.UserId, e.CategoryId });
         }
     }
 }

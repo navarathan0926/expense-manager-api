@@ -11,4 +11,5 @@ public class ReceiptDto
     public long Size { get; set; }
     public ReceiptStatus Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public int LineItemCount { get; set; }
 }

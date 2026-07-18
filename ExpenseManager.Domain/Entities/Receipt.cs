@@ -22,6 +22,7 @@ namespace ExpenseManager.Domain.Entities
         public DateTimeOffset? OcrProcessedAt { get; set; }
         public string? OcrErrorMessage { get; set; }
         public string? LineItemsJson { get; set; }
+        public int LineItemCount { get; set; }
         public ReceiptImportMode? ConfirmedImportMode { get; set; }
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
     }

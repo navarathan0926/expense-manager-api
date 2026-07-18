@@ -58,19 +58,31 @@ public class ExpenseService : IExpenseService
             throw new BadRequestException("At least one expense is required.");
 
         var categoryIds = dtos.Select(d => d.CategoryId).Distinct().ToList();
-        foreach (var categoryId in categoryIds)
+        var categories = await _categoryRepository.GetByIdsAsync(categoryIds);
+        if (categories.Count != categoryIds.Count)
         {
-            var category = await _categoryRepository.GetByIdAsync(categoryId);
-            if (category == null)
-                throw new NotFoundException(nameof(Category), categoryId);
+            var missingId = categoryIds.First(id => categories.All(c => c.Id != id));
+            throw new NotFoundException(nameof(Category), missingId);
+        }
 
+        foreach (var category in categories)
+        {
             if (!category.IsPredefined && category.UserId != userId)
                 throw new UnauthorizedException("You do not have permission to use this category.");
         }
 
-        var receiptIds = dtos.Select(d => d.ReceiptId).Where(id => id.HasValue).Select(id => id!.Value).Distinct();
-        foreach (var receiptId in receiptIds)
-            await EnsureReceiptOwnedAsync(receiptId, userId);
+        var receiptIds = dtos
+            .Select(d => d.ReceiptId)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
+
+        if (receiptIds.Count > 0)
+        {
+            foreach (var receiptId in receiptIds)
+                await EnsureReceiptOwnedAsync(receiptId, userId);
+        }
 
         var expenses = new List<Expense>(dtos.Count);
         foreach (var dto in dtos)
@@ -78,19 +90,14 @@ public class ExpenseService : IExpenseService
             var expense = _mapper.Map<Expense>(dto);
             expense.UserId = userId;
             expenses.Add(expense);
-            await _expenseRepository.AddAsync(expense);
         }
 
+        await _expenseRepository.AddRangeAsync(expenses);
         await _expenseRepository.SaveChangesAsync();
 
-        var results = new List<ExpenseResponseDto>(expenses.Count);
-        foreach (var expense in expenses)
-        {
-            var created = await _expenseRepository.GetByIdWithDetailsAsync(expense.Id);
-            results.Add(_mapper.Map<ExpenseResponseDto>(created!));
-        }
-
-        return results;
+        var expenseIds = expenses.Select(e => e.Id).ToList();
+        var loaded = await _expenseRepository.GetByIdsWithDetailsAsync(expenseIds, userId);
+        return _mapper.Map<IEnumerable<ExpenseResponseDto>>(loaded);
     }
 
     public async Task DeleteAsync(Guid id, Guid userId)

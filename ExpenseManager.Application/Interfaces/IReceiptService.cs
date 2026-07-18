@@ -11,6 +11,7 @@ public interface IReceiptService
     Task DeleteAsync(Guid id, Guid userId);
     Task ProcessOcrAsync(Guid receiptId);
     Task<ReceiptExtractionDto> GetExtractionAsync(Guid id, Guid userId);
+    Task<ReceiptProcessingStatusDto> GetProcessingStatusAsync(Guid id, Guid userId);
     Task<IEnumerable<ExpenseResponseDto>> ConfirmExtractionAsync(Guid id, ConfirmReceiptExtractionDto dto, Guid userId);
     Task RetryOcrAsync(Guid id, Guid userId);
 }
