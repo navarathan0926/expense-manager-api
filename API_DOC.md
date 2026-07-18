@@ -146,6 +146,7 @@ Uploads a receipt file to Azure Blob Storage.
     "contentType": "image/jpeg",
     "size": 123456,
     "status": "Uploaded",
+    "lineItemCount": 0,
     "createdAt": "2026-07-16T10:00:00Z"
   }
   ```
@@ -155,15 +156,29 @@ Upload automatically enqueues OCR processing in the background.
 
 #### GET `/api/v1/receipt`
 
-Lists receipts for the current user.
+Lists receipts for the current user. Returns lightweight metadata only (does not include OCR line-item JSON).
 
-- **Response**: `200 OK` (array of receipt objects)
+- **Response**: `200 OK` (array of receipt objects; includes `lineItemCount`)
 
 #### GET `/api/v1/receipt/{id}`
 
 Returns receipt metadata.
 
 - **Response**: `200 OK` or `404 Not Found`
+
+#### GET `/api/v1/receipt/{id}/status`
+
+Returns lightweight OCR processing status for polling (no line-item payload).
+
+- **Response**: `200 OK`
+  ```json
+  {
+    "receiptId": "guid",
+    "status": "Processing",
+    "lineItemCount": 0,
+    "ocrErrorMessage": null
+  }
+  ```
 
 #### GET `/api/v1/receipt/{id}/extraction`
 

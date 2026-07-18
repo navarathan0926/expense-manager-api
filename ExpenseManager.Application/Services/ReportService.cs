@@ -15,48 +15,12 @@ public class ReportService : IReportService
 
     public async Task<IEnumerable<CategoryBreakdownDto>> GetCategoryBreakdownAsync(Guid userId, int year, int month)
     {
-        var filter = new ExpenseFilterDto
-        {
-            FromDate = new DateOnly(year, month, 1),
-            ToDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month))
-        };
-        
-        var expenseList = (await _expenseRepository.GetFilteredAsync(userId, filter)).ToList();
-
-        var breakdown = expenseList
-            .GroupBy(e => e.CategoryId)
-            .Select(g => new CategoryBreakdownDto
-            {
-                CategoryId = g.Key,
-                CategoryName = g.First().Category?.Name ?? "Unknown",
-                TotalAmount = g.Sum(e => e.Amount)
-            })
-            .ToList();
-
+        var breakdown = await _expenseRepository.GetCategoryBreakdownAsync(userId, year, month);
         return breakdown;
     }
 
-    public async Task<MonthlySummaryDto> GetMonthlySummaryAsync(Guid userId, int year, int month)
+    public Task<MonthlySummaryDto> GetMonthlySummaryAsync(Guid userId, int year, int month)
     {
-        var filter = new ExpenseFilterDto
-        {
-            FromDate = new DateOnly(year, month, 1),
-            ToDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month))
-        };
-        
-        var expenseList = (await _expenseRepository.GetFilteredAsync(userId, filter)).ToList();
-
-        var count = expenseList.Count;
-        var totalAmount = expenseList.Sum(e => e.Amount);
-        var average = count > 0 ? totalAmount / count : 0;
-
-        return new MonthlySummaryDto
-        {
-            Year = year,
-            Month = month,
-            TotalAmount = totalAmount,
-            TransactionCount = count,
-            AverageTransactionAmount = average
-        };
+        return _expenseRepository.GetMonthlySummaryAsync(userId, year, month);
     }
 }

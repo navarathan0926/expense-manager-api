@@ -101,8 +101,27 @@ public class ReceiptService : IReceiptService
 
     public async Task<IEnumerable<ReceiptDto>> ListByUserAsync(Guid userId)
     {
-        var receipts = await _receiptRepository.ListByUserAsync(userId);
-        return _mapper.Map<IEnumerable<ReceiptDto>>(receipts);
+        var receipts = await _receiptRepository.ListSummariesByUserAsync(userId);
+        return receipts.Select(r => new ReceiptDto
+        {
+            Id = r.Id,
+            FileName = r.FileName,
+            FileUrl = r.FileUrl,
+            ContentType = r.ContentType,
+            Size = r.Size,
+            Status = r.Status,
+            CreatedAt = r.CreatedAt,
+            LineItemCount = r.LineItemCount
+        });
+    }
+
+    public async Task<ReceiptProcessingStatusDto> GetProcessingStatusAsync(Guid id, Guid userId)
+    {
+        var status = await _receiptRepository.GetProcessingStatusAsync(id, userId);
+        if (status == null)
+            throw new NotFoundException(nameof(Receipt), id);
+
+        return status;
     }
 
     public async Task<ReceiptFileDto> GetFileAsync(Guid id, Guid userId)
@@ -180,6 +199,7 @@ public class ReceiptService : IReceiptService
             receipt.TaxAmount = result.TaxAmount;
             receipt.SuggestedCategoryId = SuggestCategoryId(result.Merchant);
             receipt.LineItemsJson = SerializeLineItems(lineItems);
+            receipt.LineItemCount = lineItems.Count;
             receipt.OcrProcessedAt = DateTimeOffset.UtcNow;
             receipt.Status = ReceiptStatus.ReadyForReview;
         }
@@ -248,6 +268,7 @@ public class ReceiptService : IReceiptService
         receipt.TaxAmount = null;
         receipt.SuggestedCategoryId = null;
         receipt.LineItemsJson = null;
+        receipt.LineItemCount = 0;
         receipt.OcrProcessedAt = null;
         receipt.OcrErrorMessage = null;
         receipt.Status = ReceiptStatus.Uploaded;

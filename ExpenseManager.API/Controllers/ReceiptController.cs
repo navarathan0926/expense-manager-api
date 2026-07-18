@@ -70,6 +70,13 @@ public class ReceiptController : BaseController
         return Ok(extraction);
     }
 
+    [HttpGet("{id:guid}/status")]
+    public async Task<ActionResult<ReceiptProcessingStatusDto>> GetProcessingStatus(Guid id)
+    {
+        var status = await _receiptService.GetProcessingStatusAsync(id, CurrentUserId);
+        return Ok(status);
+    }
+
     [HttpPost("{id:guid}/confirm")]
     public async Task<ActionResult<IEnumerable<ExpenseResponseDto>>> Confirm(Guid id, [FromBody] ConfirmReceiptExtractionDto dto)
     {
