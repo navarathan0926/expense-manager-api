@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using ExpenseManager.API.Middleware;
 using ExpenseManager.Application;
 using ExpenseManager.Infrastructure;
@@ -62,7 +63,11 @@ namespace ExpenseManager.API
                     };
                 });
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             builder.Services.AddFluentValidationAutoValidation();
 
 

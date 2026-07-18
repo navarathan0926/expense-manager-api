@@ -6,6 +6,7 @@ using ExpenseManager.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ExpenseManager.Infrastructure
 {
@@ -31,6 +32,15 @@ namespace ExpenseManager.Infrastructure
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 
+            var documentIntelligenceEndpoint = configuration["AzureDocumentIntelligence:Endpoint"];
+            if (string.IsNullOrWhiteSpace(documentIntelligenceEndpoint))
+                services.AddScoped<IOcrService, MockOcrService>();
+            else
+                services.AddScoped<IOcrService, AzureDocumentIntelligenceOcrService>();
+
+            services.AddSingleton<ChannelReceiptOcrQueue>();
+            services.AddSingleton<IReceiptOcrQueue>(sp => sp.GetRequiredService<ChannelReceiptOcrQueue>());
+            services.AddHostedService<ReceiptOcrBackgroundService>();
 
 			return services;
 		}

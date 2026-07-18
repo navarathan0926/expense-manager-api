@@ -50,6 +50,49 @@ public class ExpenseService : IExpenseService
         return _mapper.Map<ExpenseResponseDto>(createdExpense);
     }
 
+    public async Task<IEnumerable<ExpenseResponseDto>> CreateBatchAsync(
+        IReadOnlyList<CreateExpenseDto> dtos,
+        Guid userId)
+    {
+        if (dtos.Count == 0)
+            throw new BadRequestException("At least one expense is required.");
+
+        var categoryIds = dtos.Select(d => d.CategoryId).Distinct().ToList();
+        foreach (var categoryId in categoryIds)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
+            if (category == null)
+                throw new NotFoundException(nameof(Category), categoryId);
+
+            if (!category.IsPredefined && category.UserId != userId)
+                throw new UnauthorizedException("You do not have permission to use this category.");
+        }
+
+        var receiptIds = dtos.Select(d => d.ReceiptId).Where(id => id.HasValue).Select(id => id!.Value).Distinct();
+        foreach (var receiptId in receiptIds)
+            await EnsureReceiptOwnedAsync(receiptId, userId);
+
+        var expenses = new List<Expense>(dtos.Count);
+        foreach (var dto in dtos)
+        {
+            var expense = _mapper.Map<Expense>(dto);
+            expense.UserId = userId;
+            expenses.Add(expense);
+            await _expenseRepository.AddAsync(expense);
+        }
+
+        await _expenseRepository.SaveChangesAsync();
+
+        var results = new List<ExpenseResponseDto>(expenses.Count);
+        foreach (var expense in expenses)
+        {
+            var created = await _expenseRepository.GetByIdWithDetailsAsync(expense.Id);
+            results.Add(_mapper.Map<ExpenseResponseDto>(created!));
+        }
+
+        return results;
+    }
+
     public async Task DeleteAsync(Guid id, Guid userId)
     {
         var expense = await _expenseRepository.GetByIdAsync(id);

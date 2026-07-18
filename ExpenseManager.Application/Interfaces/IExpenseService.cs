@@ -7,6 +7,7 @@ public interface IExpenseService
     Task<IEnumerable<ExpenseResponseDto>> GetAllAsync(Guid userId, ExpenseFilterDto filters);
     Task<ExpenseResponseDto> GetByIdAsync(Guid id, Guid userId);
     Task<ExpenseResponseDto> CreateAsync(CreateExpenseDto dto, Guid userId);
+    Task<IEnumerable<ExpenseResponseDto>> CreateBatchAsync(IReadOnlyList<CreateExpenseDto> dtos, Guid userId);
     Task<ExpenseResponseDto> UpdateAsync(Guid id, UpdateExpenseDto dto, Guid userId);
     Task DeleteAsync(Guid id, Guid userId);
 }

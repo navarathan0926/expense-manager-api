@@ -4,6 +4,10 @@ namespace ExpenseManager.Domain.Enums
     {
         Pending = 0,
         Uploaded = 1,
-        Failed = 2
+        Failed = 2,
+        Processing = 3,
+        ReadyForReview = 4,
+        Confirmed = 5,
+        OcrFailed = 6
     }
 }
